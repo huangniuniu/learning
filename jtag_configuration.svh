@@ -3,25 +3,18 @@ typedef class clk_wave_description;
 //---------------------------------------------------------------------------
 // Class: jtag_configuration
 //---------------------------------------------------------------------------
-
+//Paste
 class jtag_configuration extends uvm_object;
    `uvm_object_utils( jtag_configuration )
-
-   function new( string name = "" );
-      super.new( name );
-   endfunction: new
-
    virtual jtag_if          jtag_vi;
-
    dft_register_block       reg_block;
-
    bit                      gen_stil_file;
    string                   stil_file_name;
    int                      tck_half_period;
-
    string                   pad_name[3];
    int unsigned             pad_dir[3]; //0: input; 1: output; 2: inout
-   
+   ... 
+endclass: jtag_configuration
    function void pad_info_init();
       pad_name[0] = "TDI";
       pad_dir[0] = 0;

@@ -136,34 +136,26 @@ endclass : clk_wave_description
 // class: jtag_transaction
 //------------------------------------------------------------------------------
 class jtag_transaction extends uvm_sequence_item;
-    //Instruction to be sent to JTAG 1149.1 FSM.
+    `uvm_object_utils( jtag_transaction )
     bit                              o_ir[]; 
-    //Instruction bit width.
     rand  int unsigned               o_ir_length;
-    //Data register to be written.
     bit                              o_dr[];
-    //Data bit width.
     rand  int unsigned               o_dr_length;
-    //rand  bit [o_dr_length-1:0]      o_dr;
-    
-   //tdo_dr_queue/tdo_ir_queue  store tdo data
+    //tdo_dr_queue/tdo_ir_queue  store tdo data
     bit                              tdo_dr_queue[$];
     bit                              tdo_ir_queue[$];
-
     //tdi_dr_queue/tdi_ir_queue  store tdi data
     bit                              tdi_dr_queue[$];
     bit                              tdi_ir_queue[$];
   
-    //bit                              gen_stil;
     bit                              chk_ir_tdo;
     bit                              chk_dr_tdo;
     bit                              exp_tdo_dr_queue[$];
     bit                              exp_tdo_dr_mask_queue[$];
     bit                              exp_tdo_ir_queue[$];
-    
     rand  bit                        read_not_write;
-    `uvm_object_utils( jtag_transaction )
-    
+   ... 
+endclass:jtag_transaction
     function new(string name = "jtag_transaction");
         super.new(name);
         o_dr = new[ o_dr_length ];
