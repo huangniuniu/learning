@@ -3,7 +3,7 @@ typedef class clk_wave_description;
 //---------------------------------------------------------------------------
 // Class: jtag_configuration
 //---------------------------------------------------------------------------
-//Paste
+
 class jtag_configuration extends uvm_object;
    `uvm_object_utils( jtag_configuration )
    virtual jtag_if          jtag_vi;
@@ -13,8 +13,6 @@ class jtag_configuration extends uvm_object;
    int                      tck_half_period;
    string                   pad_name[3];
    int unsigned             pad_dir[3]; //0: input; 1: output; 2: inout
-   ... 
-endclass: jtag_configuration
    function void pad_info_init();
       pad_name[0] = "TDI";
       pad_dir[0] = 0;
@@ -24,16 +22,8 @@ endclass: jtag_configuration
    
       pad_name[2] = "TDO";
       pad_dir[2] = 1;
-   
    endfunction: pad_info_init
-
-   function string convert2string();
-      string       s;
-      $sformat(s, "%s\n ********************jtag_configuration*****",s );
-      $sformat(s, "%s\n gen_stil_file = \t%b \n stil_file_name = \t%s \n tck_half_period = \t%0d",s, gen_stil_file, stil_file_name, tck_half_period);
-      $sformat(s, "%s\n ********************jtag_configuration*****",s );
-      return s;
-   endfunction: convert2string
+   ...
 endclass: jtag_configuration
 
 //---------------------------------------------------------------------------
@@ -135,20 +125,36 @@ class reset_configuration extends uvm_object;
 
 endclass: reset_configuration
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------
 // Class: pad_configuration
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------
 
 class pad_configuration extends uvm_object;
    `uvm_object_utils( pad_configuration )
+   
+   virtual pad_if           pad_vi;
+   bit                      gen_stil_file;
+   string                   grp0_in_name[`PAD_GRP0_IN_NUM];
+   string                   grp0_out_name[`PAD_GRP0_OUT_NUM];
+   string                   grp0_inout_name[`PAD_GRP0_INOUT_NUM];
 
+   string                   grp1_in_name[`PAD_GRP1_IN_NUM];
+   string                   grp1_out_name[`PAD_GRP1_OUT_NUM];
+   string                   grp1_inout_name[`PAD_GRP1_INOUT_NUM];
+   
    function new( string name = "" );
       super.new( name );
    endfunction: new
 
-   virtual pad_if          pad_vi;
-
-   bit                       gen_stil_file;
+   function void pad_info_init();
+      grp0_in_name[0] = "MEMDATA0";
+      grp0_in_name[1] = "MEMDATA1";
+      ...
+      
+      grp1_in_name[0] = "GPIO0";
+      grp1_in_name[1] = "GPIO1";
+      ...
+   endfunction: pad_info_init 
 endclass: pad_configuration
 
 

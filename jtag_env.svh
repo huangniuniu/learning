@@ -3,9 +3,9 @@
 `uvm_analysis_imp_decl(_TCK_clk_drv)
 `uvm_analysis_imp_decl(_SYSCLK_clk_drv)
 `uvm_analysis_imp_decl(_pad_drv)
-//---------------------------------------------------------------------------
+//-----------------------------------------
 // Class: sib_node 
-//---------------------------------------------------------------------------
+//-----------------------------------------
 class sib_node extends uvm_object;
    `uvm_object_utils(sib_node)
    bit    in0; 
@@ -26,9 +26,9 @@ class sib_node extends uvm_object;
    endfunction: value_update
 endclass : sib_node
 
-//---------------------------------------------------------------------------
+//-----------------------------------------
 // Class: reg_node 
-//---------------------------------------------------------------------------
+//-----------------------------------------
 class reg_node extends uvm_object;
    `uvm_object_utils(reg_node)
    bit    in; 
@@ -136,207 +136,47 @@ endclass : clk_wave_description
 // class: jtag_transaction
 //------------------------------------------------------------------------------
 class jtag_transaction extends uvm_sequence_item;
-    `uvm_object_utils( jtag_transaction )
-    bit                              o_ir[]; 
+    bit                              o_ir[];
+    rand  int unsigned               o_dr_length;
     rand  int unsigned               o_ir_length;
     bit                              o_dr[];
-    rand  int unsigned               o_dr_length;
-    //tdo_dr_queue/tdo_ir_queue  store tdo data
+   //tdo_dr_queue/tdo_ir_queue  store tdo data
     bit                              tdo_dr_queue[$];
     bit                              tdo_ir_queue[$];
     //tdi_dr_queue/tdi_ir_queue  store tdi data
     bit                              tdi_dr_queue[$];
     bit                              tdi_ir_queue[$];
-  
     bit                              chk_ir_tdo;
     bit                              chk_dr_tdo;
     bit                              exp_tdo_dr_queue[$];
     bit                              exp_tdo_dr_mask_queue[$];
     bit                              exp_tdo_ir_queue[$];
     rand  bit                        read_not_write;
-   ... 
+    ...
 endclass:jtag_transaction
-    function new(string name = "jtag_transaction");
-        super.new(name);
-        o_dr = new[ o_dr_length ];
-        o_ir = new[ o_ir_length ];
-
-    endfunction
-    
-    constraint o_dr_length_c { 
-       o_dr_length >= 8;
-       o_dr_length <= 64;
-    }
-    
-    constraint o_ir_length_c { 
-       o_ir_length == 8;
-    }
-
-    function void post_randomize;
-        o_dr = new[ o_dr_length ];
-        o_ir = new[ o_ir_length ];
-        
-        foreach( o_dr[i] )
-            o_dr[i] = $urandom;
-        foreach( o_ir[i] )
-            o_ir[i] = $urandom;
-    endfunction: post_randomize
-    
-    function string convert2string();
-        string       s;
-        int unsigned hex_value;
-        int unsigned four_bits_num = o_ir_length / 4;
-        int unsigned remainder = o_ir_length % 4;
-
-        s = super.convert2string();
-        
-        $sformat(s, "%s\n ********************jtag_transaction begin*****",s );
-        $sformat(s, "%s\n o_ir = %0d'h",s, o_ir_length);
-         
-       
-        if (remainder != 0) begin
-            if (remainder == 1)
-                hex_value = o_ir[four_bits_num*4];
-            else if (remainder == 2)
-                hex_value = o_ir[four_bits_num*4 + 1] *2 + o_ir[four_bits_num*4];
-            else if (remainder == 3)
-                hex_value = o_ir[four_bits_num*4 + 2] *4 + o_ir[four_bits_num*4 + 1] *2 + o_ir[four_bits_num*4];
-            $sformat(s, "%s%0h",s,hex_value);
-        end 
-        
-        for ( int i = four_bits_num-1; i >= 0; i--) begin
-            hex_value = o_ir[i*4+3] *8 + o_ir[i*4+2] *4 + o_ir[i*4+1] *2 + o_ir[i*4];
-            $sformat(s, "%s%0h",s,hex_value);
-        end
-        
-        $sformat(s, "%s\n o_dr = %0d'h",s, o_dr_length);
-
-        four_bits_num = o_dr_length / 4;
-        remainder = o_dr_length % 4;
-        if (remainder != 0) begin
-            if (remainder == 1)
-                hex_value = o_dr[four_bits_num*4];
-            else if (remainder == 2)
-                hex_value = o_dr[four_bits_num*4 + 1] *2 + o_dr[four_bits_num*4];
-            else if (remainder == 3)
-                hex_value = o_dr[four_bits_num*4 + 2] *4 + o_dr[four_bits_num*4 + 1] *2 + o_dr[four_bits_num*4];
-            $sformat(s, "%s%0h",s,hex_value);
-        end 
-        
-        for ( int i = four_bits_num-1; i >= 0; i--) begin
-            hex_value = o_dr[i*4+3] *8 + o_dr[i*4+2] *4 + o_dr[i*4+1] *2 + o_dr[i*4];
-            $sformat(s, "%s%0h",s,hex_value);
-        end
- 
-        $sformat(s, "%s\n chk_ir_tdo = \t%d\n chk_dr_tdo = \t%d\n",s,  chk_ir_tdo, chk_dr_tdo);
-        s = {s, print_queue()};
-        $sformat(s, "%s\n ********************jtag_transaction end*****",s );
-        return s;
-    endfunction: convert2string
-
-    function string print_queue();
-       string     s;
-
-       $sformat(s, "%s\n tdi_ir_queue = ",s );
-       foreach( tdi_ir_queue[i] )
-            //$sformat(s, "%s%0b",s,tdi_ir_queue[$-i] );
-            $sformat(s, "%s%0b",s,tdi_ir_queue[i] );
-
-       $sformat(s, "%s\n tdi_dr_queue = ",s );
-       foreach( tdi_dr_queue[i] )
-            //$sformat(s, "%s%0b",s,tdi_dr_queue[$-i] );
-            $sformat(s, "%s%0b",s,tdi_dr_queue[i] );
-
-       $sformat(s, "%s\n tdo_ir_queue = ",s );
-       foreach( tdo_ir_queue[i] )
-            //$sformat(s, "%s%0b",s,tdo_ir_queue[$-i] );
-            $sformat(s, "%s%0b",s,tdo_ir_queue[i] );
-
-       $sformat(s, "%s\n tdo_dr_queue = ",s );
-       foreach( tdo_dr_queue[i] )
-            //$sformat(s, "%s%0b",s,tdo_dr_queue[$-i] );
-            $sformat(s, "%s%0b",s,tdo_dr_queue[i] );
-       if(chk_ir_tdo) begin
-          $sformat(s, "%s\n exp_tdo_ir_queue = ",s);
-          foreach( exp_tdo_ir_queue[i] )
-               //$sformat(s, "%s%0b",s,exp_tdo_ir_queue[$-i] );
-               $sformat(s, "%s%0b",s,exp_tdo_ir_queue[i] );
-       end
-       if(chk_dr_tdo) begin
-          $sformat(s, "%s\n exp_tdo_dr_queue = ",s);
-          foreach( exp_tdo_dr_queue[i] )
-               //$sformat(s, "%s%0b",s,exp_tdo_dr_queue[$-i] );
-               $sformat(s, "%s%0b",s,exp_tdo_dr_queue[i] );
-       end
-       return s;
-    endfunction: print_queue
-
-    virtual function void do_copy( uvm_object rhs );
-       jtag_transaction       that;
-
-       if ( ! $cast( that, rhs ) ) begin
-          `uvm_error( get_name(), "rhs is not a jtag_transaction" )
-          return;
-       end
-
-       super.do_copy( rhs );
-       this.o_ir                    = that.o_ir                   ;            
-       this.o_dr_length             = that.o_dr_length            ; 
-       this.o_ir_length             = that.o_ir_length            ; 
-       this.o_dr                    = that.o_dr                   ; 
-       this.tdo_dr_queue            = that.tdo_dr_queue           ; 
-       this.tdo_ir_queue            = that.tdo_ir_queue           ; 
-       this.tdi_dr_queue            = that.tdi_dr_queue           ; 
-       this.tdi_ir_queue            = that.tdi_ir_queue           ; 
-       this.chk_ir_tdo              = that.chk_ir_tdo             ; 
-       this.chk_dr_tdo              = that.chk_dr_tdo             ; 
-       this.exp_tdo_dr_queue        = that.exp_tdo_dr_queue       ; 
-       this.exp_tdo_dr_mask_queue   = that.exp_tdo_dr_mask_queue  ; 
-       this.exp_tdo_ir_queue        = that.exp_tdo_ir_queue       ; 
-       this.read_not_write          = that.read_not_write         ; 
-
-    endfunction: do_copy
-
-
-endclass:jtag_transaction
-
 //------------------------------------------------------------------------------
+// class: pad_rw_transaction
+//------------------------------------------------------------------------------
+class pad_rw_transaction extends uvm_sequence_item;
+    int unsigned     grp_num;
+    logic            in_data_queue[$];
+    logic            out_data_queue[$];
+    logic            inout_data_queue[$];
+    logic            exp_out_data_queue[$];
+    logic            exp_inout_data_queue[$];
+    ...
+endclass: pad_rw_transaction    
+
+
+//-----------------------------------------------------
 // class: stil_info_transaction
-//------------------------------------------------------------------------------
+//-----------------------------------------------------
 class stil_info_transaction extends uvm_sequence_item;
+    `uvm_object_utils( stil_info_transaction )
     string     stil_info;
     string     comment_info;
-    int unsigned     time_stamp;
-    `uvm_object_utils( stil_info_transaction )
     string     report_id;
-
-    function new(string name = "stil_info_transaction");
-        super.new(name);
-        report_id = name;
-    endfunction
-
-    function string convert2string();
-        string       s;
-        $sformat(s, "%s*********%s*********\n",s,report_id);
-        $sformat(s, "%s\n comment_info = %s\n stil_info = %s \n time_stamp = %d ",s, comment_info, stil_info, time_stamp);
-        return s;
-    endfunction
-
-    virtual function void do_copy( uvm_object rhs );
-       stil_info_transaction        that;
-
-       if ( ! $cast( that, rhs ) ) begin
-          `uvm_error( get_name(), "rhs is not a stil_info_transaction" )
-          return;
-       end
-
-       super.do_copy( rhs );
-       this.stil_info  = that.stil_info;            
-       this.comment_info  = that.comment_info;            
-       this.time_stamp = that.time_stamp;            
-    endfunction: do_copy
-
-
+    ...
  endclass: stil_info_transaction    
 
 //------------------------------------------------------------------------------
@@ -890,14 +730,15 @@ endclass:jtag_monitor
 //---------------------------------------------------------------------------
 // Class: pad_driver
 //---------------------------------------------------------------------------
-class pad_driver extends uvm_driver#( jtag_transaction );
+class pad_driver extends uvm_driver#( pad_rw_transaction);
    `uvm_component_utils( pad_driver )
    
+   string                  report_id = "pad_driver";
    virtual pad_if          pad_vi;
-
-   bit                       gen_stil_file;
+   bit                     gen_stil_file;
    pad_configuration       pad_cfg; 
    uvm_analysis_port #(stil_info_transaction)      pad_drv_ap;
+
    function new( string name, uvm_component parent );
       super.new( name, parent );
    endfunction: new
@@ -907,19 +748,75 @@ class pad_driver extends uvm_driver#( jtag_transaction );
       pad_drv_ap = new("pad_drv_ap", this );
       pad_cfg = pad_configuration::type_id::create(.name("pad_cfg"));
       assert(uvm_config_db#(pad_configuration)::get ( .cntxt( this ), .inst_name( "*" ), .field_name( "pad_cfg" ), .value( this.pad_cfg) ));
-      
       gen_stil_file = pad_cfg.gen_stil_file;
       pad_vi = pad_cfg.pad_vi;
    endfunction: build_phase
 
    task run_phase( uvm_phase phase );
-         @pad_vi.driver_mp.posedge_cb;
-         pad_vi.driver_mp.posedge_cb.POWER_OK<= 1'b1;
-         pad_vi.driver_mp.posedge_cb.VDD <= 1'b1;
-         pad_vi.driver_mp.posedge_cb.VSS <= 1'b0;
+      pad_rw_transaction      pad_tx;
+      //pad_vi.driver_mp.pad_grp0_in[0] <= 1'b1;
+      forever begin
+         seq_item_port.get_next_item( pad_tx );
+         @(posedge pad_vi.clk);
+         if(pad_tx.grp_num == 0)begin
+            foreach(pad_tx.in_data_queue[i]) pad_vi.driver_mp.pad_grp0_in[i] <= pad_tx.in_data_queue[$-i];
+            
+            foreach(pad_tx.exp_out_data_queue[i])begin
+               if(pad_tx.exp_out_data_queue[$-i] !== 1'bx) pad_tx.out_data_queue.push_front(pad_vi.driver_mp.pad_grp0_out[i]);
+               else pad_tx.out_data_queue.push_front(1'bx);
+            end
+            
+            foreach(pad_tx.inout_data_queue[i])begin
+               //in dir mode. need drive
+               if(pad_tx.inout_data_queue[$-i] !== 1'bx) pad_vi.driver_mp.pad_grp0_inout[i] <= pad_tx.inout_data_queue[$-i];
+            end
+            
+            foreach(pad_tx.exp_inout_data_queue[i])begin
+               pad_tx.inout_data_queue.delete();
+               if(pad_tx.exp_inout_data_queue[$-i] !== 1'bx) pad_tx.inout_data_queue.push_front(pad_vi.driver_mp.pad_grp0_inout[i]);
+               else pad_tx.inout_data_queue.push_front(1'bx);
+            end
+            
+         end// if(pad_tx.grp_num == 0)begin
+	      seq_item_port.item_done();
+      end//forever
    endtask: run_phase
 endclass: pad_driver
 
+//---------------------------------------------------------------------------
+// Class: pad_sequencer
+//---------------------------------------------------------------------------
+typedef uvm_sequencer #(pad_rw_transaction) pad_sequencer;
+
+//---------------------------------------------------------------------------
+// Class: pad_agent
+//---------------------------------------------------------------------------
+
+class pad_agent extends uvm_agent;
+   `uvm_component_utils( pad_agent )
+   
+   function new( string name, uvm_component parent );
+      super.new( name, parent );
+   endfunction: new
+
+   //handles for agent's components
+   pad_sequencer               pad_sqr;
+   pad_driver                  pad_drv;
+   //handles for monitor's analysis port
+   //uvm_analysis_port#( pad_transaction ) pad_ap;
+
+   function void build_phase( uvm_phase phase );
+      super.build_phase( phase );
+	   
+      pad_sqr = pad_sequencer::type_id::create(.name( "pad_sqr" ), .parent(this));
+      pad_drv = pad_driver::type_id::create   (.name( "pad_drv" ), .parent(this));
+      //pad_ap = new( .name("pad_ap"), .parent(this) );
+   endfunction: build_phase
+
+   function void connect_phase( uvm_phase phase );
+      pad_drv.seq_item_port.connect(pad_sqr.seq_item_export);
+   endfunction: connect_phase
+endclass:pad_agent
 //---------------------------------------------------------------------------
 // Class: reset_driver
 //---------------------------------------------------------------------------
@@ -947,10 +844,10 @@ class reset_driver extends uvm_driver#( jtag_transaction );
       reset_vi = reset_cfg.reset_vi;
    endfunction: build_phase
    
-   function void call_stil_gen (bit gen_stil_file, string comment_str = "");
+   function void call_stil_gen (bit gen_stil_file, bit trst, bit RESET_L,string comment_str = "");
       if(gen_stil_file == `ON) begin
          stil_info_tx = stil_info_transaction::type_id::create("stil_info_tx");
-         stil_info_tx.stil_info = $sformatf({"TRST = %0b; RESET_L = %0b;"},reset_vi.trst,reset_vi.RESET_L);
+         stil_info_tx.stil_info = $sformatf({"TRST = %0b; RESET_L = %0b;"},trst,RESET_L);
          stil_info_tx.comment_info = comment_str;
          stil_info_tx.time_stamp = $time;
          //`uvm_info("reset_drv",stil_info_tx.convert2string,UVM_NONE);
@@ -960,18 +857,19 @@ class reset_driver extends uvm_driver#( jtag_transaction );
 
 
    task run_phase( uvm_phase phase );
+         call_stil_gen(gen_stil_file,0,0);
          @reset_vi.driver_mp.posedge_cb;
          reset_vi.driver_mp.posedge_cb.trst <= 1'b1;
-         call_stil_gen(gen_stil_file);
+         call_stil_gen(gen_stil_file,1,0);
          
          repeat (3) @reset_vi.driver_mp.posedge_cb;
          reset_vi.driver_mp.posedge_cb.trst <= 1'b0;
          reset_vi.driver_mp.posedge_cb.RESET_L<= 1'b0;
-         call_stil_gen(gen_stil_file);
+         call_stil_gen(gen_stil_file,0,0);
          
          @reset_vi.driver_mp.posedge_cb;
          reset_vi.driver_mp.posedge_cb.RESET_L<= 1'b1;
-         call_stil_gen(gen_stil_file);
+         call_stil_gen(gen_stil_file,0,1);
    endtask: run_phase
 endclass: reset_driver
 
@@ -1258,7 +1156,7 @@ class jtag_driver extends uvm_driver#( jtag_transaction );
    string                  stil_file_name;
    int                     tck_half_period;
    jtag_configuration      jtag_cfg;
-   stil_info_transaction      stil_info_tx;
+   stil_info_transaction   stil_info_tx;
 
    function new( string name, uvm_component parent );
       super.new( name, parent );
@@ -1278,10 +1176,24 @@ class jtag_driver extends uvm_driver#( jtag_transaction );
       jtag_vi = jtag_cfg.jtag_vi;
    endfunction: build_phase
   
-   function void call_stil_gen (bit gen_stil_file, bit tms = 1'bx, bit tdi = 1'bx, bit tdo = "X",string comment_str = {""});
+   function void call_stil_gen (bit gen_stil_file, bit[1:0] tms = 1'bx, bit[1:0] tdi = 1'bx, bit[1:0] tdo = "X",string comment_str = {""});
+      string tdi_wave_char,tms_wave_char,tdo_wave_char;
+      
+      if(tdo == 0) tdo_wave_char = "L";
+      else if(tdo == 1) tdo_wave_char = "H";
+      else tdo_wave_char = "x";
+
+      if(tdi == 0) tdi_wave_char = "0";
+      else if(tdi == 1) tdi_wave_char = "1";
+      else tdi_wave_char = "x";
+      
+      if(tms == 0) tms_wave_char = "0";
+      else if(tms == 1) tms_wave_char = "1";
+      else tms_wave_char = "x";
+
       if(gen_stil_file == `ON) begin
          stil_info_tx = stil_info_transaction::type_id::create("stil_info_tx");
-         stil_info_tx.stil_info = $sformatf({"TMS = %0b; TDI = %0b; TDO = %b;"},tms,tdi,tdo);;
+         stil_info_tx.stil_info = $sformatf({"TMS = %s; TDI = %s; TDO = %s;"},tms_wave_char,tdi_wave_char,tdo_wave_char);
          stil_info_tx.comment_info = comment_str;
          stil_info_tx.time_stamp = $time;
          //`uvm_info("jtag_drv",stil_info_tx.convert2string,UVM_NONE);
@@ -1297,7 +1209,7 @@ class jtag_driver extends uvm_driver#( jtag_transaction );
       string            stil_str;
       string            comment_str;
       //int               stil_fd;
-      logic             stil_tms = 1'b1, stil_tdi = 1'bz, stil_tdo = 1'bx;
+      logic[1:0]        stil_tms = 1'b1, stil_tdi = 3, stil_tdo = 3;
       jtag_vi.master_mp.negedge_cb.tms <= 1;
       
       stil_tms = 1'b1;
@@ -1388,7 +1300,7 @@ class jtag_driver extends uvm_driver#( jtag_transaction );
                if(jtag_tx.exp_tdo_ir_queue[i])  stil_tdo = 1;
                else stil_tdo = 0;
             end
-            else stil_tdo = 1'bx;
+            else stil_tdo = 3;
            
             call_stil_gen(gen_stil_file,stil_tms,stil_tdi,stil_tdo);
 
@@ -1416,10 +1328,10 @@ class jtag_driver extends uvm_driver#( jtag_transaction );
             if(jtag_tx.exp_tdo_ir_queue[jtag_tx.o_ir_length-1])  stil_tdo = 1;
             else stil_tdo = 0;
          end
-         else stil_tdo = 1'bx;
+         else stil_tdo = 3;
          
          call_stil_gen(gen_stil_file,stil_tms,stil_tdi,stil_tdo);
-
+         stil_tdo = 3;
          //take jtag fsm into update_ir state
          @jtag_vi.master_mp.negedge_cb;
          jtag_vi.master_mp.negedge_cb.tms <= 1;
@@ -1479,7 +1391,7 @@ class jtag_driver extends uvm_driver#( jtag_transaction );
                if(jtag_tx.exp_tdo_dr_queue[i])  stil_tdo = 1;
                else stil_tdo = 0;
             end
-            else stil_tdo = 1'bx;
+            else stil_tdo = 3;
            
             call_stil_gen(gen_stil_file,stil_tms,stil_tdi,stil_tdo);
 
@@ -1507,10 +1419,10 @@ class jtag_driver extends uvm_driver#( jtag_transaction );
             if(jtag_tx.exp_tdo_dr_queue[jtag_tx.o_dr_length-1])  stil_tdo = 1;
             else stil_tdo = 0;
          end
-         else stil_tdo = 1'bx;
+         else stil_tdo = 3;
          
          call_stil_gen(gen_stil_file,stil_tms,stil_tdi,stil_tdo);
-
+         stil_tdo = 3;
      
          //take jtag fsm into update_dr state
          @jtag_vi.master_mp.negedge_cb;
@@ -2415,7 +2327,7 @@ class jtag_env extends uvm_env;
    TCK_clk_driver       TCK_clk_drv;
    SYSCLK_clk_driver    SYSCLK_clk_drv;
    reset_driver         reset_drv;
-   pad_driver           pad_drv;
+   pad_agent            pad_agnt;
 
    stil_generator       stil_gen;
    dft_register_layering     reg_layering;
@@ -2430,7 +2342,7 @@ class jtag_env extends uvm_env;
       TCK_clk_drv = TCK_clk_driver::type_id::create(.name( "TCK_clk_drv" ), .parent(this));
       SYSCLK_clk_drv = SYSCLK_clk_driver::type_id::create(.name( "SYSCLK_clk_drv" ), .parent(this));
       reset_drv = reset_driver::type_id::create(.name( "reset_drv" ), .parent(this));
-      pad_drv = pad_driver::type_id::create(.name( "pad_drv" ), .parent(this));
+      pad_agnt = pad_agent::type_id::create(.name( "pad_agent" ), .parent(this));
       stil_gen = stil_generator::type_id::create(.name( "stil_gen" ), .parent(this));
       reg_layering = dft_register_layering::type_id::create(.name( "reg_layering" ), .parent(this));
       
@@ -2443,7 +2355,7 @@ class jtag_env extends uvm_env;
       agent.drv.jtag_drv_ap.connect(stil_gen.jtag_drv_imp_export); 
       TCK_clk_drv.clk_drv_ap.connect(stil_gen.TCK_clk_drv_imp_export); 
       SYSCLK_clk_drv.clk_drv_ap.connect(stil_gen.SYSCLK_clk_drv_imp_export); 
-      pad_drv.pad_drv_ap.connect(stil_gen.pad_drv_imp_export); 
+      pad_agnt.pad_drv.pad_drv_ap.connect(stil_gen.pad_drv_imp_export); 
       reset_drv.reset_drv_ap.connect(stil_gen.analysis_export); 
 
       agent.mon.jtag_vi = cfg.jtag_vi;
