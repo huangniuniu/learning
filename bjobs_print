@@ -1,0 +1,4 @@
+atlgar-vdi1221:/proj/snowmass2/ruhuang/sn1/main/dft/dv/script[ 191 ] --> bjobs
+JOBID   USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
+6561766 ruhuang PEND  regr_high  atlgar-vdi1             vcs        Mar 25 05:49
+
